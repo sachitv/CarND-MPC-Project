@@ -285,10 +285,10 @@ vector<double> MPC::Solve( Eigen::VectorXd state, Eigen::VectorXd coeffs )
 	// creates a 2 element double vector.
 	vector<double> retVal( 2 );
 
-	for ( size_t i = 0; i < N; ++i )
+	for ( size_t i = 1; i < N; ++i )
 	{
-		x_values.emplace_back( solution.x[ x_start + 1 + i ] );
-		y_values.emplace_back( solution.x[ y_start + 1 + i ] );
+		x_values.emplace_back( solution.x[ x_start + i ] );
+		y_values.emplace_back( solution.x[ y_start + i ] );
 	}
 
 	retVal[ 0 ] = solution.x[ delta_start ];
