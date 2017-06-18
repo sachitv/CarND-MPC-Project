@@ -167,12 +167,12 @@ int main()
 					             lastTime = currentTime;
 
 					             Eigen::VectorXd state( 6 );
-					             state[ 0 ] = v * latency;
-					             state[ 1 ] = 0;
-					             state[ 2 ] = (v / 2.57) * (-1 * steering_angle) * latency;
-					             state[ 3 ] = v + throttle * latency;
-					             state[ 4 ] = cte + v * sin(epsi) * latency;
-					             state[ 5 ] = epsi + (v/2.67) * (-1 * steering_angle) * latency;
+					             state[ 0 ] = v * latency; // x
+					             state[ 1 ] = 0; // y
+					             state[ 2 ] = (v / 2.57) * (-1 * steering_angle) * latency; //psi
+					             state[ 3 ] = v + throttle * latency; // v
+					             state[ 4 ] = cte + v * sin(epsi) * latency; // cte
+					             state[ 5 ] = epsi + (v/2.67) * (-1 * steering_angle) * latency; // epsi
 
 					             /*
 								 * TODO: Calculate steering angle and throttle using MPC.

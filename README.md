@@ -3,6 +3,106 @@ Self-Driving Car Engineer Nanodegree Program
 
 ---
 
+## Documentation
+This section answers the questions posted in the rubric. They are as follows:
+
+***Student describes their model in detail. This includes the state, actuators and update equations.***
+
+**States:**
+1. X Position of the car in it's own space.
+2. Y Position of the car in it's own space.
+3. Psi angle (orientation angle) of the car in it's own space.
+4. Velocity of the car in the world space.
+5. Cross Track Error of the car in it's own space.
+6. Orientation Error of the car with respect to the trajectory it is supposed to follow.
+
+**Actuators:**
+1. Throttle of the car
+2. Steering of the car
+
+**Update Equations:**
+
+I followed the traditional model as discussed in the class and the quiz.
+```
+AD<double> delta0 = vars[ delta_start + t - 1 ];
+AD<double> a0 = vars[ a_start + t - 1 ];
+
+AD<double> f0 = coeffs[ 0 ] + coeffs[ 1 ] * x0 + coeffs[ 2 ] * x0 * x0 + coeffs[ 3 ] * x0 * x0 * x0;
+AD<double> psides0 = CppAD::atan( coeffs[ 1 ] + (coeffs[ 2 ] * x0 * 2) + (3 * coeffs[ 3 ] * (x0 * x0)));
+
+fg[ 1 + x_start + t ] = x1 - (x0 + v0 * CppAD::cos( psi0 ) * dt);
+fg[ 1 + y_start + t ] = y1 - (y0 + v0 * CppAD::sin( psi0 ) * dt);
+fg[ 1 + psi_start + t ] = psi1 - (psi0 + v0 * delta0 / Lf * dt);
+fg[ 1 + v_start + t ] = v1 - (v0 + a0 * dt);
+fg[ 1 + cte_start + t ] = cte1 - ((f0 - y0) + (v0 * CppAD::sin( epsi0 ) * dt));
+fg[ 1 + epsi_start + t ] = epsi1 - ((psi0 - psides0) + v0 * delta0 / Lf * dt);
+```
+
+**Constraints:**
+
+These are also the same as those discussed in class and the quiz with some amount of tweaking. The constants shown were obtained through some common sense and hit and miss attempts.
+```
+for ( size_t t = 0; t < N; t++ )
+{
+  static double const CTE_FACTOR = 0.5;
+  static double const EPSI_FACTOR = 3.0;
+  static double const VELOCITY_FACTOR = 5.0;
+  static double const STRAIGHT_BASE_VELOCITY = 30; //mph
+
+  fg[ 0 ] += CTE_FACTOR * CppAD::pow( vars[ cte_start + t ], 2 );
+  fg[ 0 ] += EPSI_FACTOR * CppAD::pow( vars[ epsi_start + t ], 2 );
+  fg[ 0 ] += VELOCITY_FACTOR * CppAD::pow( vars[ v_start + t ] - STRAIGHT_BASE_VELOCITY, 2 );
+}
+```
+```
+for ( size_t t = 0; t < N - 1; t++ )
+{
+  static double const DELTA_FACTOR = 10.0;
+  fg[ 0 ] += DELTA_FACTOR * CppAD::pow( vars[ delta_start + t ], 2 );
+  fg[ 0 ] += CppAD::pow( vars[ a_start + t ], 2 );
+}
+```
+```
+for ( size_t t = 0; t < N - 2; t++ )
+{
+  static double const DELTA_FACTOR = 1000;
+  static double const ACCEL_FACTOR = 0.01;
+  fg[ 0 ] += DELTA_FACTOR * CppAD::pow( vars[ delta_start + t + 1 ] - vars[ delta_start + t ], 2 );
+  fg[ 0 ] += ACCEL_FACTOR * CppAD::pow( vars[ a_start + t + 1 ] - vars[ a_start + t ], 2 );
+}
+```
+<br>
+
+***Student discusses the reasoning behind the chosen N (timestep length) and dt (elapsed duration between timesteps) values. Additionally the student details the previous values tried.***
+
+* N: 20
+* dt = 0.05
+
+I used these values of N and dt because they seemed to work for me consistently. Using small N's ( less than 10 )or dt's larger than 0.1 resulted in a loss of stability of the controller.
+
+<br>
+
+***A polynomial is fitted to waypoints. If the student preprocesses waypoints, the vehicle state, and/or actuators prior to the MPC procedure it is described.***
+
+I transform the waypoints into the space of the car in order to be able to draw them. I apply a cubic polynomial on the waypoints before sending them over to my controller for fitting.
+
+<br>
+
+***The student implements Model Predictive Control that handles a 100 millisecond latency. Student provides details on how they deal with latency.***
+
+I do handle latency in my system. I predict the state staring at the next time frame assumed to be at 300ms after the current frame or the amount of time it takes between two frames provided that they are less than 300 ms.
+The updated equations are as follows:
+
+```
+x = v * latency;
+y = 0;
+psi = (v / 2.57) * (-1 * steering_angle) * latency;
+v = v + throttle * latency;
+cte = cte + v * sin(epsi) * latency;
+epsi = epsi + (v/2.67) * (-1 * steering_angle) * latency;
+```
+
+
 ## Dependencies
 
 * cmake >= 3.5
