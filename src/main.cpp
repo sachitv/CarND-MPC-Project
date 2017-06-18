@@ -83,8 +83,11 @@ int main()
 
 	// MPC is initialized here!
 	MPC mpc;
+	using namespace std::chrono;
+	time_point<system_clock> lastTime = system_clock::now();
+	time_point<system_clock> currentTime = system_clock::now();
 
-	h.onMessage( [&mpc]( uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length,
+	h.onMessage( [&mpc, &lastTime, &currentTime]( uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length,
 	                     uWS::OpCode opCode )
 	             {
 		             // "42" at the start of the message means there's a websocket message event.
@@ -109,12 +112,10 @@ int main()
 					             double py = j[ 1 ][ "y" ];
 					             double psi = j[ 1 ][ "psi" ];
 					             double v = j[ 1 ][ "speed" ];
+					             double steering_angle = j[ 1 ][ "steering_angle" ];
+					             double throttle = j[ 1 ][ "throttle" ];
 
 					             //Ignore the compilation warnings.
-					             double steering_angle = j[ 1 ][ "steering_angle" ];
-					             (void) steering_angle;
-					             double throttle = j[ 1 ][ "throttle" ];
-					             (void) throttle;
 					             double unity_psi = j[ 1 ][ "psi_unity" ];
 					             (void) unity_psi;
 
@@ -154,13 +155,24 @@ int main()
 					             // This will be equivalent to the 1st coefficients arctan
 					             double const epsi = -atan( coeffs[ 1 ] );
 
+					             currentTime = system_clock::now();
+					             double latency(0.3f);
+					             auto const time_difference = duration_cast<milliseconds>(currentTime - lastTime);
+					             if(time_difference < milliseconds(300))
+					             {
+						             latency = time_difference.count() / 1000.0;
+					             }
+					             std::cout<<"Time diff:"<<time_difference.count()<<"\n\n";
+
+					             lastTime = currentTime;
+
 					             Eigen::VectorXd state( 6 );
-					             state[ 0 ] = 0;
+					             state[ 0 ] = v * latency;
 					             state[ 1 ] = 0;
-					             state[ 2 ] = 0;
-					             state[ 3 ] = v;
-					             state[ 4 ] = cte;
-					             state[ 5 ] = epsi;
+					             state[ 2 ] = (v / 2.57) * (-1 * steering_angle) * latency;
+					             state[ 3 ] = v + throttle * latency;
+					             state[ 4 ] = cte + v * sin(epsi) * latency;
+					             state[ 5 ] = epsi + (v/2.67) * (-1 * steering_angle) * latency;
 
 					             /*
 								 * TODO: Calculate steering angle and throttle using MPC.

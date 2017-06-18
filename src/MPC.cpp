@@ -6,8 +6,8 @@
 using CppAD::AD;
 
 // TODO: Set the timestep length and duration
-size_t N = 10;
-double dt = 0.1;
+size_t N = 20;
+double dt = 0.05;
 
 // This value assumes the model presented in the classroom is used.
 //
@@ -20,7 +20,6 @@ double dt = 0.1;
 //
 // This is the length from front to CoG that has a similar radius.
 static double const Lf = 2.67;
-static double const ref_v = 40; //mph
 
 // The solver takes all the state variables and actuator
 // variables in a singular vector. Thus, we should to establish
@@ -64,23 +63,25 @@ public:
 			static double const CTE_FACTOR = 0.5;
 			static double const EPSI_FACTOR = 3.0;
 			static double const VELOCITY_FACTOR = 5.0;
+			static double const STRAIGHT_BASE_VELOCITY = 50; //mph
 
 			fg[ 0 ] += CTE_FACTOR * CppAD::pow( vars[ cte_start + t ], 2 );
 			fg[ 0 ] += EPSI_FACTOR * CppAD::pow( vars[ epsi_start + t ], 2 );
-			fg[ 0 ] += VELOCITY_FACTOR * CppAD::pow( vars[ v_start + t ] - ref_v, 2 );
+			fg[ 0 ] += VELOCITY_FACTOR * CppAD::pow( vars[ v_start + t ] - STRAIGHT_BASE_VELOCITY, 2 );
 		}
 
 		// Minimize the use of actuators.
 		for ( size_t t = 0; t < N - 1; t++ )
 		{
-			fg[ 0 ] += CppAD::pow( vars[ delta_start + t ], 2 );
+			static double const DELTA_FACTOR = 10.0;
+			fg[ 0 ] += DELTA_FACTOR * CppAD::pow( vars[ delta_start + t ], 2 );
 			fg[ 0 ] += CppAD::pow( vars[ a_start + t ], 2 );
 		}
 
 		// Minimize the value gap between sequential actuations.
 		for ( size_t t = 0; t < N - 2; t++ )
 		{
-			static double const DELTA_FACTOR = 500;
+			static double const DELTA_FACTOR = 1000;
 			static double const ACCEL_FACTOR = 0.01;
 			fg[ 0 ] += DELTA_FACTOR * CppAD::pow( vars[ delta_start + t + 1 ] - vars[ delta_start + t ], 2 );
 			fg[ 0 ] += ACCEL_FACTOR * CppAD::pow( vars[ a_start + t + 1 ] - vars[ a_start + t ], 2 );
