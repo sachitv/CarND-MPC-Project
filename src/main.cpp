@@ -19,11 +19,6 @@ double deg2rad( double x ) { return x * pi() / 180; }
 
 double rad2deg( double x ) { return x * 180 / pi(); }
 
-inline double NormalizeAngleRadians( double const angleInRadians )
-{
-	return remainder( angleInRadians, 2.0 * M_PI );
-}
-
 // Checks if the SocketIO event has JSON data.
 // If there is data the JSON object in string format will be returned,
 // else the empty string "" will be returned.
@@ -114,16 +109,24 @@ int main()
 					             double py = j[ 1 ][ "y" ];
 					             double psi = j[ 1 ][ "psi" ];
 					             double v = j[ 1 ][ "speed" ];
-					             v = v * 0.44704; //convert to m/s
+
+					             //Ignore the compilation warnings.
 					             double steering_angle = j[ 1 ][ "steering_angle" ];
+					             (void) steering_angle;
 					             double throttle = j[ 1 ][ "throttle" ];
+					             (void) throttle;
 					             double unity_psi = j[ 1 ][ "psi_unity" ];
+					             (void) unity_psi;
 
-					             static int const LEN = 6;
+					             static size_t const LEN = ptsx.size();
 
 
-					             std::vector<double> ptsx_car( ptsx.size());
-					             std::vector<double> ptsy_car( ptsy.size());
+					             std::vector<double> ptsx_car( LEN );
+					             std::vector<double> ptsy_car( LEN );
+
+					             Eigen::VectorXd xVals( LEN );
+					             Eigen::VectorXd yVals( LEN );
+
 
 					             for ( auto i = 0; i < LEN; ++i )
 					             {
@@ -132,10 +135,10 @@ int main()
 
 						             ptsx_car[ i ] = x * cos( -psi ) - y * sin( -psi );
 						             ptsy_car[ i ] = x * sin( -psi ) + y * cos( -psi );
-					             }
 
-					             Eigen::VectorXd xVals = Eigen::VectorXd::Map(ptsx_car.data(), ptsx_car.size());
-					             Eigen::VectorXd yVals = Eigen::VectorXd::Map(ptsy_car.data(), ptsy_car.size());
+						             xVals[ i ] = ptsx_car[ i ];
+						             yVals[ i ] = ptsy_car[ i ];
+					             }
 
 					             //Using a third degree polynomial
 					             auto const &coeffs = polyfit( xVals, yVals, 3 );
@@ -167,13 +170,12 @@ int main()
 								 *
 								 */
 					             auto vars = mpc.Solve( state, coeffs );
-					             int const len = vars.size();
 
 					             json msgJson;
 					             // NOTE: Remember to divide by deg2rad(25) before you send the steering value back.
 					             // Otherwise the values will be in between [-deg2rad(25), deg2rad(25] instead of [-1, 1].
-					             msgJson[ "steering_angle" ] = -vars[0] / deg2rad(25.0);
-					             msgJson[ "throttle" ] = vars[1];
+					             msgJson[ "steering_angle" ] = -vars[ 0 ] / deg2rad( 25.0 );
+					             msgJson[ "throttle" ] = vars[ 1 ];
 
 					             //Display the MPC predicted trajectory
 					             //.. add (x,y) points to list here, points are in reference to the vehicle's coordinate system
