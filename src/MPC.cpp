@@ -63,7 +63,7 @@ public:
 			static double const CTE_FACTOR = 0.5;
 			static double const EPSI_FACTOR = 3.0;
 			static double const VELOCITY_FACTOR = 5.0;
-			static double const STRAIGHT_BASE_VELOCITY = 50; //mph
+			static double const STRAIGHT_BASE_VELOCITY = 30; //mph
 
 			fg[ 0 ] += CTE_FACTOR * CppAD::pow( vars[ cte_start + t ], 2 );
 			fg[ 0 ] += EPSI_FACTOR * CppAD::pow( vars[ epsi_start + t ], 2 );
