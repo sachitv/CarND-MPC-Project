@@ -204,7 +204,7 @@ vector<double> MPC::Solve( Eigen::VectorXd state, Eigen::VectorXd coeffs )
 	// The upper and lower limits of delta are set to -25 and 25
 	// degrees (values in radians).
 	// NOTE: Feel free to change this to something else.
-	for ( int i = delta_start; i < a_start; i++ )
+	for ( size_t i = delta_start; i < a_start; i++ )
 	{
 		vars_lowerbound[ i ] = -0.436332;
 		vars_upperbound[ i ] = 0.436332;
@@ -212,7 +212,7 @@ vector<double> MPC::Solve( Eigen::VectorXd state, Eigen::VectorXd coeffs )
 
 	// Acceleration/decceleration upper and lower limits.
 	// NOTE: Feel free to change this to something else.
-	for ( int i = a_start; i < n_vars; i++ )
+	for ( size_t i = a_start; i < n_vars; i++ )
 	{
 		vars_lowerbound[ i ] = -1.0;
 		vars_upperbound[ i ] = 1.0;
@@ -285,7 +285,7 @@ vector<double> MPC::Solve( Eigen::VectorXd state, Eigen::VectorXd coeffs )
 	// creates a 2 element double vector.
 	vector<double> retVal( 2 );
 
-	for ( auto i = 0; i < N; ++i )
+	for ( size_t i = 0; i < N; ++i )
 	{
 		x_values.emplace_back( solution.x[ x_start + 1 + i ] );
 		y_values.emplace_back( solution.x[ y_start + 1 + i ] );

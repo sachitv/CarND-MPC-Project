@@ -128,7 +128,7 @@ int main()
 					             Eigen::VectorXd yVals( LEN );
 
 
-					             for ( auto i = 0; i < LEN; ++i )
+					             for ( size_t i = 0; i < LEN; ++i )
 					             {
 						             double const x = ptsx[ i ] - px;
 						             double const y = ptsy[ i ] - py;
