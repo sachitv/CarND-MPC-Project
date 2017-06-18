@@ -20,7 +20,7 @@ double dt = 0.1;
 //
 // This is the length from front to CoG that has a similar radius.
 static double const Lf = 2.67;
-static double const ref_v = 30; //mph
+static double const ref_v = 40; //mph
 
 // The solver takes all the state variables and actuator
 // variables in a singular vector. Thus, we should to establish
